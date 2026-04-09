@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shajra Generator Mobile Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    @media print {
+      @page { size: A4; margin: 10mm; }
+      body { background: white !important; }
+      .print\:hidden { display: none !important; }
+      .print\:block { display: block !important; }
+      .print\:shadow-none { box-shadow: none !important; }
+      .print\:border-none { border: none !important; }
+      .print\:p-0 { padding: 0 !important; }
+      .print\:gap-0 { gap: 0 !important; }
+      .print\:h-auto { height: auto !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-200 flex flex-col items-center p-2 md:p-4 font-serif select-none">
+
+  <!-- HEADER / CONTROLS -->
+  <div class="print:hidden w-full max-w-6xl bg-white shadow-xl border-b-4 border-emerald-900 p-3 rounded-2xl mb-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-4 mb-4">
+      <div class="flex gap-2 overflow-x-auto flex-1 hide-scrollbar" id="tabs-container"></div>
+      <div class="flex gap-2 shrink-0">
+        <button onclick="handleExport()" class="p-2 bg-zinc-100 rounded-lg border border-zinc-300 shadow-sm" title="Export JSON">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+        </button>
+        <button onclick="document.getElementById('file-input').click()" class="p-2 bg-zinc-100 rounded-lg border border-zinc-300 shadow-sm" title="Import JSON">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </button>
+        <input type="file" id="file-input" onchange="handleImport(event)" class="hidden" accept=".json" />
+        <button onclick="window.print()" class="bg-emerald-700 text-white px-3 md:px-4 py-2 rounded-lg font-black text-sm shadow-md flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span class="hidden sm:inline">PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-3 mb-4">
+      <div id="mic-container" class="flex items-center gap-2 px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-bold flex-1 border-2 bg-zinc-50 border-zinc-200">
+        <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <span id="mic-text">बोलने के लिए बॉक्स चुनें</span>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <input id="manual-name" class="flex-1 border-2 p-2 md:p-3 rounded-lg font-bold text-sm" placeholder="मैनुअल नाम..." />
+        <button onclick="handleManualEntry()" class="bg-zinc-900 text-white px-4 md:px-5 rounded-lg font-black text-sm">सेव</button>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 bg-zinc-100 p-2 rounded-xl">
+      <button onclick="setEntryType('male')" class="bg-white border-2 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-black hover:bg-gray-50 flex-1 sm:flex-none">पुरुष</button>
+      <button onclick="setEntryType('female')" class="bg-white border-2 border-pink-200 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-black text-pink-700 hover:bg-pink-50 flex-1 sm:flex-none">बेटी (△)</button>
+      <button onclick="setEntryType('wife')" class="bg-white border-2 border-emerald-200 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-black text-emerald-700 hover:bg-emerald-50 flex-1 sm:flex-none">पत्नी (♡)</button>
+      <button id="btn-link-mode" onclick="toggleLinkMode()" class="px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm font-black border-2 flex-1 sm:flex-none bg-white hover:bg-gray-50">लाइन खींचें</button>
+      <button onclick="deleteSelectedCell()" class="bg-red-50 text-red-600 border-2 border-red-200 px-3 md:px-4 py-2 rounded-lg font-black text-xs md:text-sm hover:bg-red-100 flex-1 sm:flex-none">मिटाएं</button>
+    </div>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div class="w-full flex flex-col items-center pb-10">
+    <div id="pages-container" class="flex flex-col gap-10 print:gap-0 w-full items-center"></div>
+  </div>
+
+  <script>
+    const GRID_ROWS = 8;
+    const GRID_COLS = 8;
+
+    let state = {
+      pages: { "page-0": {} },
+      activePage: "page-0",
+      links: [],
+      selectedPos: '0-0',
+      isLinkMode: false,
+      linkStart: null,
+      isListening: false
+    };
+
+    function escapeJsString(str) {
+      return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, ' ')
+        .replace(/\r/g, ' ');
+    }
+
+    window.onload = () => {
+      createPageDOM('page-0');
+      renderTabs();
+      renderAllPagesVisibility();
+      updateAllCellsSelection();
+      setTimeout(calculateLines, 100);
+      window.addEventListener('resize', calculateLines);
+
+      document.getElementById('manual-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleManualEntry();
+      });
+
+      // Optional bridge status hint
+      if (window.Android && typeof window.Android.startSpeech === 'function') {
+        const micText = document.getElementById('mic-text');
+        if (micText) micText.textContent = 'Android voice ready';
+      }
+    };
+
+    function createPageDOM(pId) {
+      const container = document.getElementById('pages-container');
+
+      const pageDiv = document.createElement('div');
+      pageDiv.id = `page-${pId}`;
+      pageDiv.className = "bg-white shadow-2xl w-[96vw] md:w-[210mm] min-h-[96vw] md:min-h-[297mm] p-2 md:p-[15mm] border-2 border-zinc-400 relative print:shadow-none print:border-none print:p-0 transition-all";
+
+      const gridContainer = document.createElement('div');
+      gridContainer.id = `grid-container-${pId}`;
+      gridContainer.className = "relative w-full h-full grid-container";
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.id = `svg-${pId}`;
+      svg.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none overflow-visible z-0');
+
+      const grid = document.createElement('div');
+      grid.className = "grid grid-cols-8 gap-1 md:gap-5 relative z-10 w-full";
+
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const pos = `${r}-${c}`;
+          const cell = document.createElement('div');
+          cell.id = `cell-${pId}-${pos}`;
+          cell.className = "relative aspect-square cursor-pointer flex items-center justify-center transition-all bg-white border-[1px] md:border-[2px] border-black";
+          cell.onclick = () => handleCellClick(pId, r, c);
+          grid.appendChild(cell);
+        }
+      }
+
+      gridContainer.appendChild(svg);
+      gridContainer.appendChild(grid);
+      pageDiv.appendChild(gridContainer);
+      container.appendChild(pageDiv);
+    }
+
+    function renderTabs() {
+      const tabsContainer = document.getElementById('tabs-container');
+      tabsContainer.innerHTML = '';
+
+      Object.keys(state.pages).forEach((pId, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = `पेज ${idx + 1}`;
+        btn.className = `px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-black border-2 shrink-0 ${state.activePage === pId ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-300'}`;
+        btn.onclick = () => {
+          state.activePage = pId;
+          renderTabs();
+          renderAllPagesVisibility();
+          updateAllCellsSelection();
+          calculateLines();
+        };
+        tabsContainer.appendChild(btn);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.textContent = '+ पेज';
+      addBtn.className = "px-3 md:px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs md:text-sm font-black border-2 border-blue-200 shrink-0";
+      addBtn.onclick = () => {
+        const newPId = `page-${Object.keys(state.pages).length}`;
+        state.pages[newPId] = {};
+        createPageDOM(newPId);
+        renderTabs();
+        renderAllPagesVisibility();
+      };
+      tabsContainer.appendChild(addBtn);
+    }
+
+    function renderAllPagesVisibility() {
+      Object.keys(state.pages).forEach(pId => {
+        const pageEl = document.getElementById(`page-${pId}`);
+        if (pageEl) {
+          if (state.activePage === pId) {
+            pageEl.classList.remove('hidden');
+            pageEl.classList.add('block');
+          } else {
+            pageEl.classList.add('hidden', 'print:block');
+            pageEl.classList.remove('block');
+          }
+        }
+      });
+    }
+
+    function updateAllCellsSelection() {
+      Object.keys(state.pages).forEach(pId => {
+        for (let r = 0; r < GRID_ROWS; r++) {
+          for (let c = 0; c < GRID_COLS; c++) {
+            const pos = `${r}-${c}`;
+            const cellEl = document.getElementById(`cell-${pId}-${pos}`);
+            if (!cellEl) continue;
+
+            cellEl.classList.remove('ring-[2px]', 'md:ring-4', 'ring-blue-400', 'ring-orange-500', 'z-20');
+
+            if (state.activePage === pId && state.selectedPos === pos) {
+              cellEl.classList.add('ring-[2px]', 'md:ring-4', 'ring-blue-400', 'z-20');
+            }
+
+            if (state.isLinkMode && state.linkStart && state.linkStart.page === pId && state.linkStart.pos === pos) {
+              cellEl.classList.remove('ring-blue-400');
+              cellEl.classList.add('ring-[2px]', 'md:ring-4', 'ring-orange-500', 'z-20');
+            }
+          }
+        }
+      });
+    }
+
+    function renderCell(pId, pos) {
+      const cellEl = document.getElementById(`cell-${pId}-${pos}`);
+      if (!cellEl) return;
+
+      const data = state.pages[pId][pos];
+
+      if (!data || data.type === 'male') {
+        cellEl.classList.add('border-[1px]', 'md:border-[2px]', 'border-black');
+      } else {
+        cellEl.classList.remove('border-[1px]', 'md:border-[2px]', 'border-black');
+      }
+
+      if (!data) {
+        cellEl.innerHTML = '';
+        return;
+      }
+
+      let shapeSvg = '';
+      if (data.type === 'female') {
+        shapeSvg = `<svg class="absolute inset-0 w-full h-full drop-shadow-sm" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <polygon points="50,5 5,95 95,95" fill="white" stroke="black" stroke-width="2.5" vector-effect="non-scaling-stroke" />
+                    </svg>`;
+      } else if (data.type === 'wife') {
+        shapeSvg = `<svg class="absolute inset-0 w-full h-full drop-shadow-sm" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <g transform="rotate(-90 50 50)">
+                        <path d="M 50,85 C 0,55 0,15 25,15 C 38,15 45,25 50,32 C 55,25 62,15 75,15 C 100,15 100,55 50,85 Z" fill="white" stroke="black" stroke-width="2.5" vector-effect="non-scaling-stroke" />
+                      </g>
+                    </svg>`;
+      }
+
+      const textSizeClass = data.type === 'female' ? 'mt-2 md:mt-4 text-[7px] md:text-xs' : 'text-[8px] md:text-base';
+      const paddingClass = data.type === 'wife' ? 'pl-[10%] pr-[5%]' : 'px-1';
+
+      cellEl.innerHTML = `
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          ${shapeSvg}
+          <span class="relative z-10 font-black text-center break-words line-clamp-3 leading-tight ${textSizeClass} ${paddingClass}">${data.name}</span>
+        </div>
+      `;
+    }
+
+    function updateCell(pId, pos, name, type) {
+      const currentType = state.pages[pId][pos] ? state.pages[pId][pos].type : 'male';
+      state.pages[pId][pos] = { name, type: type || currentType };
+      renderCell(pId, pos);
+      calculateLines();
+    }
+
+    function handleCellClick(pId, r, c) {
+      const pos = `${r}-${c}`;
+      if (state.isLinkMode) {
+        if (!state.linkStart) {
+          state.linkStart = { page: pId, pos };
+          updateAllCellsSelection();
+        } else {
+          if (state.linkStart.page !== pId || state.linkStart.pos !== pos) {
+            state.links.push({ from: state.linkStart, to: { page: pId, pos } });
+            calculateLines();
+          }
+          state.linkStart = null;
+          updateAllCellsSelection();
+        }
+      } else {
+        state.selectedPos = pos;
+        state.activePage = pId;
+        renderTabs();
+        renderAllPagesVisibility();
+        updateAllCellsSelection();
+
+        if (!state.pages[pId][pos]) {
+          triggerVoiceForCell(pId, pos);
+        }
+      }
+    }
+
+    function triggerVoiceForCell(pId, pos) {
+      // Native Android path
+      if (window.Android && typeof window.Android.startSpeech === 'function') {
+        state.isListening = true;
+        updateListeningUI();
+        try {
+          window.Android.startSpeech(String(pId), String(pos));
+        } catch (e) {
+          state.isListening = false;
+          updateListeningUI();
+          alert('Android speech bridge error: ' + e.message);
+        }
+        return;
+      }
+
+      // Browser fallback
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Speech recognition is not supported here. Use the Android app build.');
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'hi-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      state.isListening = true;
+      updateListeningUI();
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript.trim();
+        if (text) updateCell(pId, pos, text, 'male');
+        state.isListening = false;
+        updateListeningUI();
+      };
+
+      recognition.onerror = () => {
+        state.isListening = false;
+        updateListeningUI();
+      };
+
+      recognition.onend = () => {
+        state.isListening = false;
+        updateListeningUI();
+      };
+
+      recognition.start();
+    }
+
+    // Android bridge callback: call this from Kotlin/Java after recognition
+    window.onSpeechResult = function(pId, pos, text) {
+      if (text && String(text).trim()) {
+        updateCell(String(pId), String(pos), String(text).trim(), 'male');
+      }
+      state.isListening = false;
+      updateListeningUI();
+    };
+
+    window.onSpeechError = function(message) {
+      state.isListening = false;
+      updateListeningUI();
+      if (message) alert(message);
+    };
+
+    function updateListeningUI() {
+      const micIcon = document.getElementById('mic-icon');
+      const micText = document.getElementById('mic-text');
+      const container = document.getElementById('mic-container');
+
+      if (state.isListening) {
+        container.className = "flex items-center gap-2 px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-bold flex-1 border-2 bg-red-50 border-red-300";
+        micIcon.setAttribute('fill', '#ef4444');
+        micIcon.classList.add('animate-pulse');
+        micText.textContent = "सुन रहा हूँ...";
+      } else {
+        container.className = "flex items-center gap-2 px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-bold flex-1 border-2 bg-zinc-50 border-zinc-200";
+        micIcon.setAttribute('fill', 'currentColor');
+        micIcon.classList.remove('animate-pulse');
+        micText.textContent = window.Android && typeof window.Android.startSpeech === 'function'
+          ? "बॉक्स चुनें, Android voice चलेगा"
+          : "बोलने के लिए बॉक्स चुनें";
+      }
+    }
+
+    function handleManualEntry() {
+      const input = document.getElementById('manual-name');
+      const name = input.value.trim();
+      if (name) {
+        updateCell(state.activePage, state.selectedPos, name, 'male');
+        input.value = '';
+      }
+    }
+
+    function toggleLinkMode() {
+      state.isLinkMode = !state.isLinkMode;
+      state.linkStart = null;
+      const btn = document.getElementById('btn-link-mode');
+      btn.className = `px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm font-black border-2 flex-1 sm:flex-none transition-colors ${state.isLinkMode ? 'bg-orange-600 text-white' : 'bg-white hover:bg-gray-50'}`;
+      updateAllCellsSelection();
+    }
+
+    function setEntryType(type) {
+      if (state.pages[state.activePage][state.selectedPos]) {
+        updateCell(state.activePage, state.selectedPos, state.pages[state.activePage][state.selectedPos].name, type);
+      }
+    }
+
+    function deleteSelectedCell() {
+      if (state.pages[state.activePage][state.selectedPos]) {
+        delete state.pages[state.activePage][state.selectedPos];
+        state.links = state.links.filter(l =>
+          !(l.from.pos === state.selectedPos && l.from.page === state.activePage) &&
+          !(l.to.pos === state.selectedPos && l.to.page === state.activePage)
+        );
+        renderCell(state.activePage, state.selectedPos);
+        calculateLines();
+      }
+    }
+
+    function handleExport() {
+      const dataStr = JSON.stringify({ pages: state.pages, links: state.links });
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Shajra_Data_${new Date().toLocaleDateString().replaceAll('/', '-')}.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function handleImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          state.pages = data.pages || { "page-0": {} };
+          state.links = data.links || [];
+          state.activePage = Object.keys(state.pages)[0] || 'page-0';
+          state.selectedPos = '0-0';
+
+          document.getElementById('pages-container').innerHTML = '';
+          Object.keys(state.pages).forEach(pId => {
+            createPageDOM(pId);
+            for (let r = 0; r < GRID_ROWS; r++) {
+              for (let c = 0; c < GRID_COLS; c++) {
+                if (state.pages[pId][`${r}-${c}`]) {
+                  renderCell(pId, `${r}-${c}`);
+                }
+              }
+            }
+          });
+
+          renderTabs();
+          renderAllPagesVisibility();
+          updateAllCellsSelection();
+          setTimeout(calculateLines, 50);
+        } catch (err) {
+          alert('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    function calculateLines() {
+      const newPaths = {};
+      Object.keys(state.pages).forEach(p => newPaths[p] = []);
+
+      const childrenByParent = {};
+      const spouses = [];
+
+      state.links.forEach(link => {
+        const rA = parseInt(link.from.pos.split('-')[0], 10);
+        const rB = parseInt(link.to.pos.split('-')[0], 10);
+        if (link.from.page === link.to.page && rA === rB) {
+          spouses.push(link);
+        } else {
+          const key = `${link.from.page}|${link.from.pos}`;
+          if (!childrenByParent[key]) childrenByParent[key] = { parent: link.from, children: [] };
+          childrenByParent[key].children.push(link.to);
+        }
+      });
+
+      const getRect = (pId, pos) => {
+        const el = document.getElementById(`cell-${pId}-${pos}`);
+        const container = document.getElementById(`grid-container-${pId}`);
+        if (!el || !container) return null;
+
+        const rect = el.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        return {
+          left: rect.left - contRect.left,
+          right: rect.right - contRect.left,
+          top: rect.top - contRect.top,
+          bottom: rect.bottom - contRect.top,
+          cx: (rect.left - contRect.left) + rect.width / 2,
+          cy: (rect.top - contRect.top) + rect.height / 2,
+          width: rect.width,
+          height: rect.height,
+          containerW: contRect.width
+        };
+      };
+
+      // 1. Spouses
+      spouses.forEach(sp => {
+        const r1 = getRect(sp.from.page, sp.from.pos);
+        const r2 = getRect(sp.to.page, sp.to.pos);
+        if (!r1 || !r2) return;
+
+        const minR = r1.cx < r2.cx ? r1 : r2;
+        const maxR = r1.cx < r2.cx ? r2 : r1;
+
+        const minPosObj = minR === r1 ? sp.from : sp.to;
+        const maxPosObj = maxR === r1 ? sp.from : sp.to;
+
+        const typeMin = state.pages[minPosObj.page][minPosObj.pos]?.type;
+        const typeMax = state.pages[maxPosObj.page][maxPosObj.pos]?.type;
+
+        let startX = minR.right;
+        let endX = maxR.left;
+
+        if (typeMin === 'wife') startX = minR.left + (minR.width * 0.85);
+        if (typeMax === 'wife') endX = maxR.left + (maxR.width * 0.32);
+
+        newPaths[sp.from.page].push(`M ${startX} ${minR.cy} L ${endX} ${maxR.cy}`);
+      });
+
+      // 2. Parents to children
+      Object.values(childrenByParent).forEach(group => {
+        const pRect = getRect(group.parent.page, group.parent.pos);
+        if (!pRect) return;
+
+        const childrenByPage = {};
+        group.children.forEach(c => {
+          if (!childrenByPage[c.page]) childrenByPage[c.page] = [];
+          childrenByPage[c.page].push(c);
+        });
+
+        const pPageNum = parseInt(group.parent.page.split('-')[1], 10);
+        const hasExternalChildren = group.children.some(c => parseInt(c.page.split('-')[1], 10) > pPageNum);
+
+        const parentPageChildren = childrenByPage[group.parent.page] || [];
+        const parentCRects = parentPageChildren.map(c => getRect(c.page, c.pos)).filter(Boolean);
+
+        let yBus;
+        if (parentCRects.length > 0) {
+          yBus = pRect.bottom + (parentCRects[0].top - pRect.bottom) / 2;
+        } else {
+          yBus = pRect.bottom + (window.innerWidth < 640 ? 10 : 20);
+        }
+
+        let minX = pRect.cx;
+        let maxX = pRect.cx;
+        if (parentCRects.length > 0) {
+          minX = Math.min(minX, ...parentCRects.map(r => r.cx));
+          maxX = Math.max(maxX, ...parentCRects.map(r => r.cx));
+        }
+        if (hasExternalChildren) maxX = pRect.containerW;
+
+        newPaths[group.parent.page].push(`M ${pRect.cx} ${pRect.bottom} L ${pRect.cx} ${yBus}`);
+        newPaths[group.parent.page].push(`M ${minX} ${yBus} L ${maxX} ${yBus}`);
+        parentCRects.forEach(cRect => {
+          newPaths[group.parent.page].push(`M ${cRect.cx} ${yBus} L ${cRect.cx} ${cRect.top}`);
+        });
+
+        Object.keys(childrenByPage).forEach(pageId => {
+          if (pageId === group.parent.page) return;
+          const cRects = childrenByPage[pageId].map(c => getRect(c.page, c.pos)).filter(Boolean);
+          if (cRects.length === 0) return;
+
+          const childTop = cRects[0].top;
+          const localYBus = childTop - (window.innerWidth < 640 ? 10 : 20);
+          const localMaxX = Math.max(...cRects.map(r => r.cx));
+
+          newPaths[pageId].push(`M 0 ${localYBus} L ${localMaxX} ${localYBus}`);
+          cRects.forEach(cRect => {
+            newPaths[pageId].push(`M ${cRect.cx} ${localYBus} L ${cRect.cx} ${cRect.top}`);
+          });
+        });
+      });
+
+      const strokeW = window.innerWidth < 768 ? '1.5' : '3';
+
+      Object.keys(state.pages).forEach(pId => {
+        const svgEl = document.getElementById(`svg-${pId}`);
+        if (!svgEl) return;
+        svgEl.innerHTML = '';
+        (newPaths[pId] || []).forEach(d => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', 'black');
+          path.setAttribute('stroke-width', strokeW);
+          path.setAttribute('stroke-linecap', 'round');
+          path.setAttribute('stroke-linejoin', 'round');
+          svgEl.appendChild(path);
+        });
+      });
+    }
+
+    // Ensure page 0 is rendered if the DOM is reloaded after Android bridge callbacks
+    window.addEventListener('focus', () => {
+      renderAllPagesVisibility();
+      updateAllCellsSelection();
+      calculateLines();
+    });
+  </script>
+</body>
+</html>
