@@ -6,6 +6,13 @@
     <title>Shajra Excel Pro - Menu Layout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            /* Default Global Styling Variables */
+            --global-fs: 13px;
+            --global-fw: 800;
+            --global-bw: 3.5px;
+        }
+
         * {
             user-select: none;
         }
@@ -30,7 +37,7 @@
         }
         
         .excel-cell.has-data {
-            border: 3.5px solid #1e3a2f !important;
+            border: var(--cell-bw, var(--global-bw)) solid #1e3a2f !important;
         }
         
         .text-content {
@@ -46,8 +53,19 @@
             font-family: 'Segoe UI', 'Arial', sans-serif;
             pointer-events: none;
         }
-        .text-content strong { font-size: 13px; font-weight: 800; margin-bottom: 2px; color: #0a2f1f; }
-        .text-content span { font-size: 11px; color: #2d3e2b; font-weight: 600; }
+        .text-content strong { 
+            font-size: var(--cell-fs, var(--global-fs)); 
+            font-weight: var(--cell-fw, var(--global-fw)); 
+            margin-bottom: 2px; 
+            color: #0a2f1f; 
+        }
+        
+        /* FIXED: Span text (2nd line) now scales proportionally with the strong text */
+        .text-content span { 
+            font-size: calc(var(--cell-fs, var(--global-fs)) * 0.85); 
+            font-weight: calc(var(--cell-fw, var(--global-fw)) - 200); 
+            color: #2d3e2b; 
+        }
         
         .excel-row-header {
             border-bottom: 1px solid #2c3e2f;
@@ -55,15 +73,17 @@
             min-height: 44px;
             outline: none;
             background: #fef9e6;
-            font-weight: 500;
+            color: #000; 
+            font-weight: 800; 
         }
         .excel-row-header:last-child { border-bottom: 2px solid #2c3e2f; }
         
         /* ---------------- PRINT STYLES ---------------- */
         @media print {
-            @page { size: A4 landscape; margin: 5mm; } /* मार्जिन कम किया गया ताकि ज़्यादा जगह मिले */
+            @page { size: A4 landscape; margin: 10mm; } 
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .print\:hidden { display: none !important; }
+            
             body, html {
                 background: white !important; margin: 0 !important; padding: 0 !important;
                 height: auto !important; overflow: visible !important;
@@ -71,20 +91,30 @@
             .flex-1.overflow-auto, .hide-scrollbar {
                 overflow: visible !important; height: auto !important; padding: 0 !important; background: white !important;
             }
-            #canvas-wrapper { transform: none !important; position: static !important; width: 100% !important; height: auto !important; }
+            
+            #canvas-wrapper { zoom: 1 !important; transform: none !important; display: block !important; width: 100% !important; height: auto !important; }
             #pages-wrapper { display: block !important; gap: 0 !important; }
+            
             .page-container {
-                display: block !important; page-break-inside: avoid !important; break-inside: avoid !important;
+                display: block !important; 
+                position: relative !important;
+                page-break-inside: avoid !important; break-inside: avoid !important;
                 page-break-after: always !important; break-after: page !important;
-                border: 2px solid #000 !important; margin: 0 0 10px 0 !important; padding: 20px !important;
-                background: white !important; box-shadow: none !important; 
-                zoom: 0.55 !important; /* जूम कम किया ताकि सब कुछ एक पेज पर अच्छे से आ जाए */
+                border: 2px solid #000 !important; 
+                margin: 0 !important; 
+                padding: 20px !important;
+                background: white !important; 
+                box-shadow: none !important; 
+                zoom: 0.55 !important; 
             }
-            .page-container:last-child { page-break-after: auto !important; break-after: auto !important; margin-bottom: 0 !important; }
+            
+            .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
+            
             @-moz-document url-prefix() {
                 .page-container {
+                    zoom: 1 !important;
                     transform: scale(0.55) !important; transform-origin: top left !important;
-                    width: 1580px !important; height: 1250px !important; margin-bottom: -500px !important; 
+                    width: 1580px !important; height: 1020px !important; margin-bottom: -450px !important; 
                 }
             }
             svg { overflow: visible !important; }
@@ -100,41 +130,125 @@
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- 1. TOP MENU BAR (System Level) -->
+    <!-- 1. TOP MENU BAR -->
     <div class="print:hidden w-full bg-[#1e293b] text-gray-200 flex items-center px-4 py-1.5 text-sm z-[60] shadow-md relative shrink-0">
-        <div class="font-extrabold text-white mr-6 tracking-wide text-lg">शजरा प्रो</div>
+        <!-- Hamburger Menu Button -->
+        <button onclick="toggleSidebar()" class="mr-4 p-1 rounded hover:bg-slate-700 transition">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
         
-        <!-- Menu Items -->
-        <div class="flex items-center gap-1">
-            <!-- File Menu Dropdown -->
-            <div class="relative group">
-                <button class="px-3 py-1.5 rounded hover:bg-slate-700 transition font-medium flex items-center gap-1">
-                    फ़ाइल (File)
-                    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <!-- Dropdown Content -->
-                <div class="absolute left-0 top-full mt-0 w-48 bg-white text-gray-800 border border-gray-300 shadow-xl rounded-b-md hidden group-hover:block z-[100] py-1">
-                    <button onclick="document.getElementById('file-input').click()" class="w-full text-left px-4 py-2 hover:bg-slate-100 flex justify-between items-center transition">
-                        <span>आयात (Import)</span><span class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1 rounded">.json</span>
-                    </button>
-                    <button onclick="handleExport()" class="w-full text-left px-4 py-2 hover:bg-slate-100 flex justify-between items-center transition">
-                        <span>निर्यात (Export)</span><span class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1 rounded">.json</span>
-                    </button>
-                    <div class="border-t border-gray-200 my-1"></div>
-                    <button onclick="window.print()" class="w-full text-left px-4 py-2 hover:bg-emerald-50 text-emerald-700 font-bold flex justify-between items-center transition">
-                        <span>प्रिंट (Print)</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="px-3 py-1.5 rounded hover:bg-slate-700 transition font-medium cursor-help" title="शॉर्टकट: नाम लिखकर Enter दबाएं।">मदद (Help)</div>
-        </div>
+        <div class="font-extrabold text-white mr-6 tracking-wide text-lg">शजरा प्रो</div>
 
         <!-- Zoom Control -->
         <div class="ml-auto flex items-center gap-3">
             <span class="text-xs font-medium text-slate-300">ज़ूम:</span>
             <input type="range" id="zoom-slider" min="0.4" max="1.5" step="0.1" value="1" oninput="handleZoom(this.value)" class="w-24 cursor-pointer accent-emerald-500">
+        </div>
+    </div>
+
+    <!-- SIDEBAR OVERLAY -->
+    <div id="sidebar-overlay" class="print:hidden fixed inset-0 bg-black/50 z-[100] hidden" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR MENU -->
+    <div id="sidebar" class="print:hidden fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-[110] transform -translate-x-full transition-transform duration-300 overflow-y-auto flex flex-col">
+        <div class="flex items-center justify-between p-4 bg-[#1e293b] text-white shrink-0">
+            <span class="font-extrabold tracking-wide text-lg">मेनू (Menu)</span>
+            <button onclick="toggleSidebar()" class="hover:text-red-400 p-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <div class="p-4 flex flex-col gap-6 flex-1">
+            <!-- File Options -->
+            <div>
+                <h3 class="font-bold text-slate-500 border-b pb-1 mb-3 text-xs uppercase tracking-wide">फ़ाइल (File)</h3>
+                <div class="flex flex-col gap-2">
+                    <button onclick="document.getElementById('file-input').click()" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm font-medium flex justify-between items-center transition">
+                        <span>आयात (Import)</span><span class="text-[10px] text-slate-400 font-mono">.json</span>
+                    </button>
+                    <button onclick="handleExport()" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm font-medium flex justify-between items-center transition">
+                        <span>निर्यात (Export)</span><span class="text-[10px] text-slate-400 font-mono">.json</span>
+                    </button>
+                    <button onclick="window.print()" class="w-full text-left px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded border border-emerald-200 text-sm font-bold flex justify-between items-center transition mt-1">
+                        <span>प्रिंट (Print)</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Details Options -->
+            <div>
+                <h3 class="font-bold text-slate-500 border-b pb-1 mb-3 text-xs uppercase tracking-wide">विवरण (Header Details)</h3>
+                <div class="flex flex-col gap-2 text-sm font-medium">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">मौजा</span>
+                        <input type="text" id="inp-mauja" class="w-40 border border-slate-300 rounded px-2 py-1 text-right bg-slate-50 focus:bg-white" oninput="updateHeaderData()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">ह.नं.</span>
+                        <input type="text" id="inp-hno" class="w-40 border border-slate-300 rounded px-2 py-1 text-right bg-slate-50 focus:bg-white" oninput="updateHeaderData()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">तहसील</span>
+                        <input type="text" id="inp-tehsil" class="w-40 border border-slate-300 rounded px-2 py-1 text-right bg-slate-50 focus:bg-white" oninput="updateHeaderData()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">जिला</span>
+                        <input type="text" id="inp-zila" class="w-40 border border-slate-300 rounded px-2 py-1 text-right bg-slate-50 focus:bg-white" oninput="updateHeaderData()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">बाबत साल</span>
+                        <input type="text" id="inp-saal" class="w-40 border border-slate-300 rounded px-2 py-1 text-right bg-slate-50 focus:bg-white" oninput="updateHeaderData()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Options -->
+            <div>
+                <h3 class="font-bold text-slate-500 border-b pb-1 mb-3 text-xs uppercase tracking-wide">डिज़ाइन (Design)</h3>
+                
+                <p class="text-xs font-bold text-slate-400 mb-2">सबके लिए (ALL BOXES)</p>
+                <div class="flex flex-col gap-2 mb-4 text-sm font-medium bg-slate-50 p-2 rounded border border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">टेक्स्ट साइज़</span>
+                        <input type="number" id="global-fs" value="13" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateGlobalStyle('fontSize', this.value)">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">बोल्डनेस</span>
+                        <input type="number" id="global-fw" step="100" min="100" max="900" value="800" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateGlobalStyle('fontWeight', this.value)">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">बॉर्डर मोटाई</span>
+                        <input type="number" id="global-bw" step="0.5" min="0" value="3.5" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateGlobalStyle('borderWidth', this.value)">
+                    </div>
+                </div>
+
+                <p class="text-xs font-bold text-blue-500 mb-2">चुने हुए बॉक्स के लिए (SELECTED BOX)</p>
+                <div class="flex flex-col gap-2 text-sm font-medium bg-blue-50/50 p-2 rounded border border-blue-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">टेक्स्ट साइज़</span>
+                        <input type="number" id="local-fs" placeholder="Auto" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateLocalStyle('fontSize', this.value)">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">बोल्डनेस</span>
+                        <input type="number" id="local-fw" step="100" min="100" max="900" placeholder="Auto" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateLocalStyle('fontWeight', this.value)">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">बॉर्डर मोटाई</span>
+                        <input type="number" id="local-bw" step="0.5" min="0" placeholder="Auto" class="w-20 border border-slate-300 rounded px-1 text-center bg-white" onchange="updateLocalStyle('borderWidth', this.value)">
+                    </div>
+                    <button onclick="clearLocalStyle()" class="mt-1 bg-white hover:bg-slate-100 text-slate-700 text-xs py-1.5 rounded border border-slate-300 font-bold transition">रिसेट (Reset Box)</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Page Delete Option at Bottom of Sidebar -->
+        <div class="p-4 border-t border-slate-200 shrink-0">
+            <button onclick="deleteCurrentPage()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2 rounded text-sm font-bold flex justify-center items-center gap-2 transition">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                वर्तमान पेज हटाएं
+            </button>
         </div>
     </div>
 
@@ -176,8 +290,9 @@
         </div>
     </div>
 
-    <div class="flex-1 w-full overflow-auto bg-gray-100 p-4 hide-scrollbar relative">
-        <div id="canvas-wrapper" class="origin-top-left inline-block transition-transform duration-100">
+    <!-- MAIN CANVAS WRAPPER -->
+    <div class="flex-1 w-full overflow-auto bg-gray-100 p-4 hide-scrollbar relative" id="canvas-scroll-area">
+        <div id="canvas-wrapper" class="origin-top-left inline-block" style="zoom: 1;">
             <div id="pages-wrapper" class="flex flex-col gap-8"></div>
         </div>
     </div>
@@ -187,6 +302,8 @@
         const WIFE_LEFT_EDGE = 25, WIFE_RIGHT_EDGE = 150;   
         
         let state = {
+            globalStyle: { fontSize: 13, fontWeight: 800, borderWidth: 3.5 },
+            headerData: { mauja: '', hNo: '', tehsil: '', zila: '', saal: '' },
             pages: {},
             activePage: "page-0",
             links: [],
@@ -198,15 +315,93 @@
         };
 
         window.onload = () => {
+            applyGlobalStyles();
             addPage("page-0");
             document.getElementById('manual-name').addEventListener('keydown', e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleManualEntry(); }
             });
             renderTabs();
             updateSelectionUI();
+            renderAllHeaders();
         };
 
-        function handleZoom(val) { document.getElementById('canvas-wrapper').style.transform = `scale(${val})`; }
+        // SIDEBAR TOGGLE
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // HEADER DATA MANAGEMENT
+        function updateHeaderData() {
+            state.headerData.mauja = document.getElementById('inp-mauja').value;
+            state.headerData.hNo = document.getElementById('inp-hno').value;
+            state.headerData.tehsil = document.getElementById('inp-tehsil').value;
+            state.headerData.zila = document.getElementById('inp-zila').value;
+            state.headerData.saal = document.getElementById('inp-saal').value;
+            renderAllHeaders();
+        }
+
+        function renderAllHeaders() {
+            const { mauja, hNo, tehsil, zila, saal } = state.headerData;
+            const headerText = `शजरा नस्ब मालकान &nbsp;&nbsp;&nbsp; मौजा - ${mauja || '________'} &nbsp;&nbsp;&nbsp; ह.नं. ${hNo || '______'} &nbsp;&nbsp;&nbsp; तहसील - ${tehsil || '________'} &nbsp;&nbsp;&nbsp; जिला - ${zila || '________'} &nbsp;&nbsp;&nbsp; बाबत साल - ${saal || '______'}`;
+            
+            Object.keys(state.pages).forEach(pId => {
+                const el = document.getElementById(`dynamic-header-${pId}`);
+                if (el) el.innerHTML = headerText;
+            });
+        }
+
+        // STYLE MANAGEMENT FUNCTIONS
+        function updateGlobalStyle(prop, val) {
+            state.globalStyle[prop] = parseFloat(val) || val;
+            applyGlobalStyles();
+        }
+
+        function applyGlobalStyles() {
+            if (!state.globalStyle) state.globalStyle = { fontSize: 13, fontWeight: 800, borderWidth: 3.5 };
+            const root = document.documentElement;
+            root.style.setProperty('--global-fs', `${state.globalStyle.fontSize}px`);
+            root.style.setProperty('--global-fw', state.globalStyle.fontWeight);
+            root.style.setProperty('--global-bw', `${state.globalStyle.borderWidth}px`);
+            
+            document.getElementById('global-fs').value = state.globalStyle.fontSize;
+            document.getElementById('global-fw').value = state.globalStyle.fontWeight;
+            document.getElementById('global-bw').value = state.globalStyle.borderWidth;
+        }
+
+        function updateLocalStyle(prop, val) {
+            if (!state.selectedPos || !state.pages[state.activePage][state.selectedPos]) return;
+            const data = state.pages[state.activePage][state.selectedPos];
+            
+            if (!data.style) data.style = {};
+            if (val === '' || isNaN(val)) {
+                delete data.style[prop];
+            } else {
+                data.style[prop] = parseFloat(val);
+            }
+            renderCell(state.activePage, state.selectedPos);
+        }
+
+        function clearLocalStyle() {
+            if (!state.selectedPos) return;
+            const data = state.pages[state.activePage][state.selectedPos];
+            if (data && data.style) {
+                delete data.style;
+                renderCell(state.activePage, state.selectedPos);
+                updateSelectionUI(); 
+            }
+        }
+
+        function handleZoom(val) { 
+            document.getElementById('canvas-wrapper').style.zoom = val; 
+        }
 
         function addPage(pId) {
             if (!state.pages[pId]) state.pages[pId] = {};
@@ -217,23 +412,26 @@
             
             pageDiv.innerHTML = `
                 <div class="mb-8 w-full border-t-2 border-x-2 border-black z-20 relative bg-[#fef7e0]">
-                    <div contenteditable="true" class="excel-row-header text-center text-xl font-bold tracking-wide">शजरा नस्ब मालकान &nbsp;&nbsp;&nbsp; मौजा - ________ &nbsp;&nbsp;&nbsp; ह.नं. ______ &nbsp;&nbsp;&nbsp; तहसील - बावल &nbsp;&nbsp;&nbsp; जिला - ________ &nbsp;&nbsp;&nbsp; बाबत साल - ______</div>
-                    <div contenteditable="true" class="excel-row-header text-center text-md text-gray-700">(वंशावली मुख्य पंक्ति - खानदानी रिकॉर्ड)</div>
-                    <div contenteditable="true" class="excel-row-header text-center text-md text-gray-700">(महत्वपूर्ण टिप्पणी / संदर्भ)</div>
+                    <div id="dynamic-header-${pId}" class="excel-row-header text-center text-xl font-extrabold text-black tracking-wide"></div>
+                    <div contenteditable="true" class="excel-row-header text-center text-lg font-bold text-black">&nbsp;</div>
+                    <div contenteditable="true" class="excel-row-header text-center text-lg font-bold text-black">&nbsp;</div>
                 </div>
-                <!-- Flex wrapper added here to center the grid horizontally perfectly -->
+                
                 <div class="flex justify-center w-full my-8">
                     <div id="grid-container-${pId}" class="relative inline-block text-left">
                         <svg id="svg-${pId}" class="absolute inset-0 w-full h-full pointer-events-none overflow-visible" style="z-index: 5;"></svg>
                         <div id="grid-${pId}" class="grid grid-cols-7 gap-x-[40px] gap-y-[60px] relative z-10"></div>
                     </div>
                 </div>
+                
                 <div class="mt-12 w-full border-t-2 border-x-2 border-black z-20 relative bg-[#fef7e0]">
-                    <div contenteditable="true" class="excel-row-header text-right font-bold text-md">प्रमाण / विवरण पंक्ति १</div>
-                    <div contenteditable="true" class="excel-row-header text-right font-bold text-md">विवरण पंक्ति २ (मुहर / हस्ताक्षर)</div>
+                    <div contenteditable="true" class="excel-row-header text-right font-bold text-lg text-black">&nbsp;</div>
+                    <div contenteditable="true" class="excel-row-header text-right font-bold text-lg text-black">&nbsp;</div>
                 </div>
             `;
             wrapper.appendChild(pageDiv);
+            renderAllHeaders();
+
             const grid = document.getElementById(`grid-${pId}`);
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
@@ -248,12 +446,40 @@
             switchPage(pId);
         }
 
+        // DELETE CURRENT PAGE FUNCTION
+        function deleteCurrentPage() {
+            const pageIds = Object.keys(state.pages);
+            if (pageIds.length <= 1) {
+                alert("अंतिम पेज को नहीं हटाया जा सकता। (Cannot delete the last page)");
+                return;
+            }
+            if (!confirm("क्या आप वाकई इस पेज को हटाना चाहते हैं?")) return;
+            
+            const pId = state.activePage;
+            
+            // Remove links associated with this page
+            state.links = state.links.filter(l => l.from.page !== pId && l.to.page !== pId);
+            
+            // Remove page from state
+            delete state.pages[pId];
+            
+            // Remove from DOM
+            const pageEl = document.getElementById(pId);
+            if(pageEl) pageEl.remove();
+            
+            // Close sidebar and switch to another page
+            toggleSidebar();
+            const remainingPages = Object.keys(state.pages);
+            switchPage(remainingPages[0]);
+        }
+
         function switchPage(pId) {
             state.activePage = pId;
             document.querySelectorAll('.page-container').forEach(p => p.style.display = (p.id === pId ? "block" : "none"));
             renderTabs();
             updateSelectionUI();
             calculateLines();
+            document.getElementById('canvas-scroll-area').scrollTo(0,0);
         }
 
         function renderCell(pId, pos) {
@@ -261,6 +487,7 @@
             const data = state.pages[pId][pos];
             if (!cell) return;
             cell.innerHTML = '';
+            
             const hasContent = data && data.name && data.name.trim().length > 0;
             if (hasContent) cell.classList.add('has-data');
             else cell.classList.remove('has-data');
@@ -269,6 +496,21 @@
             else if (hasContent) cell.style.backgroundColor = '#fffef7';
             else cell.style.backgroundColor = '#fffcf5';
             
+            if (data && data.style) {
+                if (data.style.borderWidth !== undefined) cell.style.setProperty('--cell-bw', `${data.style.borderWidth}px`);
+                else cell.style.removeProperty('--cell-bw');
+                
+                if (data.style.fontSize !== undefined) cell.style.setProperty('--cell-fs', `${data.style.fontSize}px`);
+                else cell.style.removeProperty('--cell-fs');
+                
+                if (data.style.fontWeight !== undefined) cell.style.setProperty('--cell-fw', data.style.fontWeight);
+                else cell.style.removeProperty('--cell-fw');
+            } else {
+                cell.style.removeProperty('--cell-bw');
+                cell.style.removeProperty('--cell-fs');
+                cell.style.removeProperty('--cell-fw');
+            }
+
             if (!data) return;
             const lines = data.name.split('\n');
             const textHtml = `<strong>${escapeHtml(lines[0])}</strong>${lines.slice(1).map(l => `<span>${escapeHtml(l)}</span>`).join('')}`;
@@ -406,6 +648,17 @@
                 const start = document.getElementById(`cell-${state.linkStart.page}-${state.linkStart.pos}`);
                 if (start) start.classList.add('link-start-highlight');
             }
+
+            const data = state.pages[state.activePage][state.selectedPos];
+            if (data && data.style) {
+                document.getElementById('local-fs').value = data.style.fontSize || '';
+                document.getElementById('local-fw').value = data.style.fontWeight || '';
+                document.getElementById('local-bw').value = data.style.borderWidth || '';
+            } else {
+                document.getElementById('local-fs').value = '';
+                document.getElementById('local-fw').value = '';
+                document.getElementById('local-bw').value = '';
+            }
         }
         
         function handleManualEntry() {
@@ -449,7 +702,7 @@
                 btn.className = `px-3 py-1.5 border text-xs font-bold rounded transition ${state.activePage === p ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}`;
                 btn.textContent = `पेज ${idx+1}`; btn.onclick = () => switchPage(p); container.appendChild(btn);
             });
-            const addBtn = document.createElement('button'); addBtn.textContent = "+ नया पेज"; addBtn.className = "px-3 py-1.5 border border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold rounded transition";
+            const addBtn = document.createElement('button'); addBtn.textContent = "+ नया पेज"; addBtn.className = "px-3 py-1.5 border border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold rounded transition shrink-0";
             addBtn.onclick = () => addPage(`page-${Object.keys(state.pages).length}`); container.appendChild(addBtn);
         }
         
@@ -462,15 +715,31 @@
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader(); reader.onload = (ev) => {
                 try {
-                    state = JSON.parse(ev.target.result); document.getElementById('pages-wrapper').innerHTML = '';
+                    state = JSON.parse(ev.target.result); 
+                    if (!state.globalStyle) state.globalStyle = { fontSize: 13, fontWeight: 800, borderWidth: 3.5 };
+                    if (!state.headerData) state.headerData = { mauja: '', hNo: '', tehsil: '', zila: '', saal: '' };
+                    
+                    applyGlobalStyles();
+                    
+                    document.getElementById('inp-mauja').value = state.headerData.mauja || '';
+                    document.getElementById('inp-hno').value = state.headerData.hNo || '';
+                    document.getElementById('inp-tehsil').value = state.headerData.tehsil || '';
+                    document.getElementById('inp-zila').value = state.headerData.zila || '';
+                    document.getElementById('inp-saal').value = state.headerData.saal || '';
+
+                    document.getElementById('pages-wrapper').innerHTML = '';
                     Object.keys(state.pages).forEach(p => { addPage(p); Object.keys(state.pages[p]).forEach(pos => renderCell(p, pos)); });
                     if (Object.keys(state.pages).length) switchPage(Object.keys(state.pages)[0]);
+                    
                     calculateLines();
+                    renderAllHeaders();
+                    toggleSidebar(); // Close sidebar after import
                 } catch(err) { alert("अमान्य फ़ाइल"); }
             }; reader.readAsText(file); e.target.value = '';
         }
     </script>
 </body>
 </html>
+
 
 ```
